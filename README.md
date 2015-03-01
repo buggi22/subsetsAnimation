@@ -1,3 +1,3 @@
 # subsetsAnimation
 
-View this repository as hosted on github: http://buggi22.github.io/subsetsAnimation/
+View this repository as hosted on github: https://buggi22.github.io/subsetsAnimation/
