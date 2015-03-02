@@ -37,7 +37,6 @@ function main() {
     // TODO: add "point" to head of arrow
     var result = Raphael.format("M{0},{1}L{2},{3}",
         tail[0], tail[1], head[0], head[1]);
-    console.log(result);
     return result;
   }
 
@@ -152,7 +151,6 @@ function main() {
   var callbacks = {};
   
   callbacks.moveDown = function(state) {
-    //console.log("moveDown state = " + JSON.stringify(state));
     if (state.subset == null) {
       // We've reached the final subset, so there are no more callbacks
       // to generate.
