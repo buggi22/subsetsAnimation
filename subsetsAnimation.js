@@ -30,24 +30,60 @@ function main() {
     return [cx, cy];
   }
 
+  function arrowPathSpec(params) {
+    var tail = getCoords(params.fromRow, params.fromCol);
+    // TODO: subtract radius from length of arrow?
+    var head = getCoords(params.toRow, params.toCol);
+    // TODO: add "point" to head of arrow
+    var result = Raphael.format("M{0},{1}L{2},{3}",
+        tail[0], tail[1], head[0], head[1]);
+    console.log(result);
+    return result;
+  }
+
   Raphael.fn.numberedCircle = function(params) {
+    var thisPaper = this;
+
     var obj = {};
 
     obj.params = params;
 
     var pt = getCoords(params.rowIndex, params.colIndex);
-    obj.circleElement = paper.circle(pt[0], pt[1], radius);
-    obj.numberElement = paper.text(pt[0], pt[1], params.number);
+    obj.circleElement = thisPaper.circle(pt[0], pt[1], radius)
+        .attr({fill: "#fff"});
+    obj.numberElement = thisPaper.text(pt[0], pt[1], params.number);
 
     obj.animate = function(newParams, durationMs, easing, callback) {
-      obj.params.rowIndex = newParams.rowIndex;
-      obj.params.colIndex = newParams.colIndex;
       var dest = getCoords(newParams.rowIndex, newParams.colIndex);
       obj.circleElement.animate({cx: dest[0], cy: dest[1]},
           durationMs, easing, callback);
       obj.numberElement.animate({x: dest[0], y: dest[1]},
           durationMs, easing);
-      // TODO: handle arrows here
+
+      var arrowStroke;
+      if (newParams.arrowType == arrowTypes.pushLeft) {
+        arrowStroke = "#c00";
+      } else if (newParams.arrowType == arrowTypes.pushRight) {
+        arrowStroke = "#00c";
+      } else {
+        arrowStroke = "#ccc";
+      }
+      var arrow = thisPaper.path(arrowPathSpec({
+        fromRow: obj.params.rowIndex,
+        fromCol: obj.params.colIndex,
+        toRow: obj.params.rowIndex,
+        toCol: obj.params.colIndex,
+      })).attr({stroke: arrowStroke});
+      arrow.toBack();
+      arrow.animate({path: arrowPathSpec({
+        fromRow: obj.params.rowIndex,
+        fromCol: obj.params.colIndex,
+        toRow: newParams.rowIndex,
+        toCol: newParams.colIndex,
+      })}, durationMs, easing);
+
+      obj.params.rowIndex = newParams.rowIndex;
+      obj.params.colIndex = newParams.colIndex;
     };
 
     obj.setNumber = function(newNumber) {
@@ -57,7 +93,7 @@ function main() {
 
     obj.customClone = function() {
       var paramsCopy = jQuery.extend({}, obj.params);
-      return paper.numberedCircle(paramsCopy);
+      return thisPaper.numberedCircle(paramsCopy);
     };
 
     return obj;
