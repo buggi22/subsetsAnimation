@@ -136,10 +136,6 @@ function main() {
     };
   }
  
-  function debug(msg) {
-    debugElement.attr("text", msg);
-  }
-  
   var n = 6;
   var k = 3;
   var maxRows = binomial(n, k);
@@ -153,8 +149,6 @@ function main() {
   var paperHeight = (maxRows+1) * gridHeight;
   var paper = Raphael("main", paperWidth, paperHeight);
   
-  var debugElement = paper.text(7*gridWidth, 7*gridHeight, "");
-  
   var callbacks = {};
   
   callbacks.moveDown = function(state) {
@@ -164,8 +158,6 @@ function main() {
       // to generate.
       return null;
     }
-    console.log(state.subset.subset); // TODO: remove when done debugging
-    console.log(state.subset.movedIndex); // TODO: remove when done debugging
     return function() {
       var newSubset = nextSubset(n, k, state.subset);
       if (newSubset == null) {
