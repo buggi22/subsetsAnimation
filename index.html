@@ -6,14 +6,14 @@
 <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js'></script>
 <script src="subsetsAnimation.js"></script>
 <script>
-$(function() {
-  $("#goButton").click(function() {
-    var n = parseInt($("#n").val(), 10);
-    var k = parseInt($("#k").val(), 10);
-    $("#main").empty();
-    runAnimation(n, k);
-  });
+function runAnimationFromUI() {
+  var n = parseInt($("#n").val(), 10);
+  var k = parseInt($("#k").val(), 10);
+  $("#main").empty();
+  runAnimation(n, k);
+}
 
+$(function() {
   // Set up default values
   var n = 6;
   var k = 3;
@@ -56,10 +56,10 @@ body {
   <li>If there are any elements to the left of j, push them as far to the left as possible.  (Shown in <span class="red">red</span>)</li>
 </ul>
 <p>
-<form onSubmit="return false;">
+<form onSubmit="runAnimationFromUI(); return false;">
 n = <input type="text" id="n" size="1" />,
 k = <input type="text" id="k" size="1" />
-<input type="button" id="goButton" value="Go" />
+<input type="submit" value="Go" />
 </form>
 </p>
 <p><a href="https://github.com/buggi22/subsetsAnimation">View this project on GitHub</a></p>
