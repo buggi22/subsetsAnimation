@@ -23,7 +23,46 @@ function main() {
     }
     return null;
   }
- 
+
+  function getCoords(row, col) {
+    var cx = 1.5*radius + col * gridWidth;
+    var cy = 1.5*radius + row * gridHeight;
+    return [cx, cy];
+  }
+
+  Raphael.fn.numberedCircle = function(params) {
+    var obj = {};
+
+    obj.params = params;
+
+    var pt = getCoords(params.rowIndex, params.colIndex);
+    obj.circleElement = paper.circle(pt[0], pt[1], radius);
+    obj.numberElement = paper.text(pt[0], pt[1], params.number);
+
+    obj.animate = function(newParams, durationMs, easing, callback) {
+      obj.params.rowIndex = newParams.rowIndex;
+      obj.params.colIndex = newParams.colIndex;
+      var dest = getCoords(newParams.rowIndex, newParams.colIndex);
+      obj.circleElement.animate({cx: dest[0], cy: dest[1]},
+          durationMs, easing, callback);
+      obj.numberElement.animate({x: dest[0], y: dest[1]},
+          durationMs, easing);
+      // TODO: handle arrows here
+    };
+
+    obj.setNumber = function(newNumber) {
+      obj.params.number = newNumber;
+      obj.numberElement.attr("text", newNumber);
+    };
+
+    obj.customClone = function() {
+      var paramsCopy = jQuery.extend({}, obj.params);
+      return paper.numberedCircle(paramsCopy);
+    };
+
+    return obj;
+  }
+
   function nextSubset(n, k, subsetObject) {
     if (subsetObject == null) {
       var next = [];
@@ -69,71 +108,86 @@ function main() {
   var k = 3;
   var maxRows = binomial(n, k);
   
-  var gridWidth = gridHeight = 30;
-  var timeUnitMs = 1e2;
-  
-  var paper = Raphael("main", 0, 0, 800, 800);
+  var gridWidth = 30;
+  var gridHeight = 1.5 * gridWidth;
+  var timeUnitMs = 100;
+  var radius = 10;
+
+  var paperWidth = (n+1) * gridWidth;
+  var paperHeight = (maxRows+1) * gridHeight;
+  var paper = Raphael("main", paperWidth, paperHeight);
   
   var debugElement = paper.text(7*gridWidth, 7*gridHeight, "");
   
-  var radius = 10;
-  var circle = paper.circle(1.5*radius /* cx */, 1.5*radius /* cy */, radius)
-      .attr("fill", "#fff");
-  var number = paper.text(1.5*radius, 1.5*radius, "1");
-  
-  var circleSet = paper.set();
-  var numberSet = paper.set();
-
   var callbacks = {};
   
-  callbacks.setup = function(oldCircle, oldNumber, colIndex, rowIndex) {
-    circleSet.push(oldCircle);
-    numberSet.push(oldNumber);
-    if (colIndex == n-1) {
-      var subset = nextSubset(n, k, null);
-      return callbacks.moveDown(circleSet, numberSet, subset, rowIndex);
-    }
-    return function() {
-      var newCircle = oldCircle.clone();
-      var newNumber = oldNumber.clone();
-      if (colIndex >= k-1) {
-        newCircle.animate({"fill": "#ccc"}, timeUnitMs);
-      }
-      newCircle.animate(
-          {"cx": newCircle.attr("cx") + gridWidth},
-          timeUnitMs, "linear", callbacks.setup(newCircle, newNumber, colIndex+1, rowIndex));
-      newNumber.attr("text", colIndex+2);
-      newNumber.animate(
-          {"x": newNumber.attr("x") + gridWidth},
-          timeUnitMs, "linear", callbacks);
-    };
-  }
-  
-  callbacks.moveDown = function(oldCircleSet, oldNumberSet, oldSubset, rowIndex) {
-    if (oldSubset == null) {
+  callbacks.moveDown = function(state) {
+    //console.log("moveDown state = " + JSON.stringify(state));
+    if (state.subset == null) {
+      // We've reached the final subset, so there are no more callbacks
+      // to generate.
       return null;
     }
-    console.log(oldSubset.subset); // TODO: remove when done debugging
-    console.log(oldSubset.movedIndex); // TODO: remove when done debugging
+    console.log(state.subset.subset); // TODO: remove when done debugging
+    console.log(state.subset.movedIndex); // TODO: remove when done debugging
     return function() {
-      var newCircleSet = oldCircleSet.clone();
-      var newNumberSet = oldNumberSet.clone();
-      var newSubset = nextSubset(n, k, oldSubset);
-      var colIndex = 0;
-      newCircleSet.forEach(function(el) {
-        var callback = colIndex == 0 ? callbacks.moveDown(newCircleSet, newNumberSet, newSubset, rowIndex+1) : null;
-        el.animate(
-            {"cy": el.attr("cy") + gridHeight},
-            timeUnitMs, "linear", callback);
-        colIndex++;
-      });
-      newNumberSet.forEach(function(el) {
-        el.animate(
-            {"y": el.attr("y") + gridHeight},
-            timeUnitMs, "linear", null);
-      });
+      var newSubset = nextSubset(n, k, state.subset);
+      if (newSubset == null) {
+        return;
+      }
+
+      var newCircles = [];
+      for (var i = 0; i < state.circles.length; i++) {
+        newCircles.push(state.circles[i].customClone());
+      }
+
+      var newRowIndex = state.rowIndex+1;
+
+      var newState = {
+        circles: newCircles,
+        subset: newSubset,
+        rowIndex: newRowIndex,
+      };
+      var callback = callbacks.moveDown(newState);
+
+      for (var i = 0; i < newCircles.length; i++) {
+        var arrowType;
+        if (i < newSubset.movedIndex) {
+          arrowType = arrowTypes.pushLeft;
+        } else if (i == newSubset.movedIndex) {
+          arrowType = arrowTypes.pushRight;
+        } else {
+          arrowType = arrowTypes.dontTouch;
+        }
+
+        var number = newSubset.subset[i];
+        newCircles[i].setNumber(number);
+        newCircles[i].animate(
+            {"rowIndex": newRowIndex, "colIndex": number - 1,
+                "arrowType": arrowType},
+            timeUnitMs, "linear",
+            i == 0 ? callback : null);
+      }
     }
   }
-  
-  callbacks.setup(circle, number, 0, 0)();
+ 
+  var arrowTypes = {
+    pushLeft: 0,
+    pushRight: 1,
+    dontTouch: 2,
+  };
+ 
+  var firstSubset = nextSubset(n, k, null);
+  var circles = [];
+  for (var i = 0; i < firstSubset.subset.length; i++) {
+    var number = firstSubset.subset[i];
+    var circle = paper.numberedCircle({
+      rowIndex: 0,
+      colIndex: number - 1,
+      number: number,
+    });
+    circles.push(circle);
+  }
+
+  callbacks.moveDown({rowIndex: 0, subset: firstSubset, circles: circles})();
 }
