@@ -11,7 +11,56 @@ function main() {
   function binomial(n, k) {
     return factorial(n) / (factorial(k) * factorial(n-k));
   }
-  
+
+  function getIndexToMove(n, k, subsetArray) {
+    for (var i = 0; i < subsetArray.length - 1; i++) {
+      if (subsetArray[i] + 1 < subsetArray[i+1]) {
+        return i;
+      }
+    }
+    if (subsetArray[subsetArray.length - 1] < n) {
+      return subsetArray.length - 1;
+    }
+    return null;
+  }
+ 
+  function nextSubset(n, k, subsetObject) {
+    if (subsetObject == null) {
+      var next = [];
+      for (var i = 1; i <= k; i++) {
+        next.push(i);
+      }
+      return {
+        "subset": next,
+        "movedIndex": null,
+      };
+    }
+
+    var oldSubsetArray = subsetObject.subset;
+    var movedIndex = getIndexToMove(n, k, oldSubsetArray);
+
+    if (movedIndex == null) {
+      // We've reached the last subset.
+      return null;
+    }
+
+    var newSubsetArray = [];
+    for (var i = 0; i < oldSubsetArray.length; i++) {
+      if (i < movedIndex) {
+        newSubsetArray.push(i+1);
+      } else if (i == movedIndex) {
+        newSubsetArray.push(oldSubsetArray[i] + 1);
+      } else {
+        newSubsetArray.push(oldSubsetArray[i]);
+      }
+    }
+
+    return {
+      "subset": newSubsetArray,
+      "movedIndex": movedIndex,
+    };
+  }
+ 
   function debug(msg) {
     debugElement.attr("text", msg);
   }
@@ -41,7 +90,8 @@ function main() {
     circleSet.push(oldCircle);
     numberSet.push(oldNumber);
     if (colIndex == n-1) {
-      return callbacks.moveDown(circleSet, numberSet, rowIndex);
+      var subset = nextSubset(n, k, null);
+      return callbacks.moveDown(circleSet, numberSet, subset, rowIndex);
     }
     return function() {
       var newCircle = oldCircle.clone();
@@ -59,16 +109,19 @@ function main() {
     };
   }
   
-  callbacks.moveDown = function(oldCircleSet, oldNumberSet, rowIndex) {
-    if (rowIndex == maxRows-1) {
+  callbacks.moveDown = function(oldCircleSet, oldNumberSet, oldSubset, rowIndex) {
+    if (oldSubset == null) {
       return null;
     }
+    console.log(oldSubset.subset); // TODO: remove when done debugging
+    console.log(oldSubset.movedIndex); // TODO: remove when done debugging
     return function() {
       var newCircleSet = oldCircleSet.clone();
       var newNumberSet = oldNumberSet.clone();
+      var newSubset = nextSubset(n, k, oldSubset);
       var colIndex = 0;
       newCircleSet.forEach(function(el) {
-        var callback = colIndex == 0 ? callbacks.moveDown(newCircleSet, newNumberSet, rowIndex+1) : null;
+        var callback = colIndex == 0 ? callbacks.moveDown(newCircleSet, newNumberSet, newSubset, rowIndex+1) : null;
         el.animate(
             {"cy": el.attr("cy") + gridHeight},
             timeUnitMs, "linear", callback);
