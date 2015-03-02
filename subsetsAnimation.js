@@ -1,4 +1,4 @@
-function main() {
+function runAnimation(n, k) {
 
   function factorial(n) {
     if (n <= 0) {
@@ -135,8 +135,6 @@ function main() {
     };
   }
  
-  var n = 6;
-  var k = 3;
   var maxRows = binomial(n, k);
   
   var gridWidth = 30;

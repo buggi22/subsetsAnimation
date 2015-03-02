@@ -6,7 +6,21 @@
 <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js'></script>
 <script src="subsetsAnimation.js"></script>
 <script>
-$(main);
+$(function() {
+  $("#goButton").click(function() {
+    var n = parseInt($("#n").val(), 10);
+    var k = parseInt($("#k").val(), 10);
+    $("#main").empty();
+    runAnimation(n, k);
+  });
+
+  // Set up default values
+  var n = 6;
+  var k = 3;
+  $("#n").val(n);
+  $("#k").val(k);
+  runAnimation(n, k);
+});
 </script>
 <style>
 body {
@@ -25,7 +39,14 @@ body {
 <div id="main" class="cell"></div>
 <div class="cell">
 <h1>Subsets Animation</h1>
-<p>This animation illustrates an algorithm for generating all possible subsets of size k taken from the set {1, ..., n}.</p>
+<p>This page illustrates an algorithm for generating all possible subsets of size k taken from the set {1, ..., n}.</p>
+<p>
+<form onSubmit="return false;">
+n = <input type="text" id="n" size="1" />,
+k = <input type="text" id="k" size="1" />
+<input type="button" id="goButton" value="Go" />
+</form>
+</p>
 <p><a href="https://github.com/buggi22/subsetsAnimation">View this project on GitHub</a></p>
 <p>&copy; 2015 Andrew Leverentz</p>
 </div>
