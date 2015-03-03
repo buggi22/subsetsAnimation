@@ -1,3 +1,22 @@
+// Register a document.onready function
+$(document).ready(function() {
+  var defaultN = 6;
+  var defaultK = 3;
+  $("#n").val(defaultN);
+  $("#k").val(defaultK);
+  runAnimation(defaultN, defaultK);
+});
+
+/**
+ * Parses the input form and triggers an animation.
+ */
+function runAnimationFromUI() {
+  var nFromUI = parseInt($("#n").val(), 10);
+  var kFromUI = parseInt($("#k").val(), 10);
+  $("#main").empty();
+  runAnimation(nFromUI, kFromUI);
+}
+
 /**
  * The main entry point for running the animation.
  */

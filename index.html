@@ -5,43 +5,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.1.0/raphael-min.js"></script>
 <script src='https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js'></script>
 <script src="subsetsAnimation.js"></script>
-<script>
-function runAnimationFromUI() {
-  var nFromUI = parseInt($("#n").val(), 10);
-  var kFromUI = parseInt($("#k").val(), 10);
-  $("#main").empty();
-  runAnimation(nFromUI, kFromUI);
-}
-
-$(function() {
-  var defaultN = 6;
-  var defaultK = 3;
-  $("#n").val(defaultN);
-  $("#k").val(defaultK);
-  runAnimation(defaultN, defaultK);
-});
-</script>
-<style>
-body {
-  font-family: sans-serif;
-}
-.row {
-  display: table-row;
-}
-.cell {
-  display: table-cell;
-  vertical-align: top;
-}
-.red {
-  color: #c00;
-}
-.blue {
-  color: #00c;
-}
-.gray {
-  color: #aaa;
-}
-</style>
+<link href="style.css" rel="stylesheet" type="text/css" />
 <body>
 <div class="row">
 <div id="main" class="cell"></div>
