@@ -7,19 +7,18 @@
 <script src="subsetsAnimation.js"></script>
 <script>
 function runAnimationFromUI() {
-  var n = parseInt($("#n").val(), 10);
-  var k = parseInt($("#k").val(), 10);
+  var nFromUI = parseInt($("#n").val(), 10);
+  var kFromUI = parseInt($("#k").val(), 10);
   $("#main").empty();
-  runAnimation(n, k);
+  runAnimation(nFromUI, kFromUI);
 }
 
 $(function() {
-  // Set up default values
-  var n = 6;
-  var k = 3;
-  $("#n").val(n);
-  $("#k").val(k);
-  runAnimation(n, k);
+  var defaultN = 6;
+  var defaultK = 3;
+  $("#n").val(defaultN);
+  $("#k").val(defaultK);
+  runAnimation(defaultN, defaultK);
 });
 </script>
 <style>
