@@ -1,7 +1,7 @@
 function runAnimation(n, k) {
 
   if (n < k) {
-    alert("n must be greater than k");
+    alert("n must be greater than or equal to k");
     return;
   }
 
