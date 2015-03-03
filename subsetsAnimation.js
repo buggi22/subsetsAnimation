@@ -1,5 +1,15 @@
 function runAnimation(n, k) {
 
+  if (n < k) {
+    alert("n must be greater than k");
+    return;
+  }
+
+  if (k < 0) {
+    alert("k must be non-negative");
+    return;
+  }
+
   function factorial(n) {
     if (n <= 0) {
       return 1;
@@ -7,11 +17,67 @@ function runAnimation(n, k) {
       return n * factorial(n-1);
     }
   }
-  
+
+  /**
+   * Computes the binomial coefficient n-choose-k.  Used for determining
+   * how much vertical space to allocate for the animation.
+   */
   function binomial(n, k) {
     return factorial(n) / (factorial(k) * factorial(n-k));
   }
 
+  /**
+   * Given an existing subset, find the next available subset.
+   * This is the main workhorse of the algorithm that is being animated.
+   * Note: subsetObject and the return value are both objects with fields named
+   * subset and movedIndex -- subset is an array representing a k-element
+   * subset, and movedIndex (possibly null) specifies the index of the element
+   * that was most recently shifted rightward.
+   * This algorithm does not strictly need to return movedIndex, but it makes
+   * the animation code a bit simpler.
+   */
+  function nextSubset(n, k, subsetObject) {
+    if (subsetObject == null) {
+      var next = [];
+      for (var i = 1; i <= k; i++) {
+        next.push(i);
+      }
+      return {
+        "subset": next,
+        "movedIndex": null,
+      };
+    }
+
+    var oldSubsetArray = subsetObject.subset;
+    var movedIndex = getIndexToMove(n, k, oldSubsetArray);
+
+    if (movedIndex == null) {
+      // We've reached the last subset.
+      return null;
+    }
+
+    var newSubsetArray = [];
+    for (var i = 0; i < oldSubsetArray.length; i++) {
+      if (i < movedIndex) {
+        newSubsetArray.push(i+1);
+      } else if (i == movedIndex) {
+        newSubsetArray.push(oldSubsetArray[i] + 1);
+      } else {
+        newSubsetArray.push(oldSubsetArray[i]);
+      }
+    }
+
+    return {
+      "subset": newSubsetArray,
+      "movedIndex": movedIndex,
+    };
+  }
+ 
+  /**
+   * Determines the index of the element that should be shifted right to
+   * generate the next subset.  Returns null if no more subsets can
+   * be generated.
+   */
   function getIndexToMove(n, k, subsetArray) {
     for (var i = 0; i < subsetArray.length - 1; i++) {
       if (subsetArray[i] + 1 < subsetArray[i+1]) {
@@ -24,12 +90,20 @@ function runAnimation(n, k) {
     return null;
   }
 
+  /**
+   * Computes the coordinates (within the Raphael SVG element) corresponding
+   * to the given row and column indices.
+   */
   function getCoords(row, col) {
     var cx = 1.5*radius + col * gridWidth;
     var cy = 1.5*radius + row * gridHeight;
     return [cx, cy];
   }
 
+  /**
+   * Computes the path associated with a given arrow.
+   * @param params specifies fromRow, fromCol, toRow, and toCol.
+   */
   function arrowPathSpec(params) {
     var tail = getCoords(params.fromRow, params.fromCol);
     // TODO: subtract radius from length of arrow?
@@ -40,6 +114,10 @@ function runAnimation(n, k) {
     return result;
   }
 
+  /**
+   * Defines a custom Raphael method for generating and animating a
+   * numbered circle.
+   */
   Raphael.fn.numberedCircle = function(params) {
     var thisPaper = this;
 
@@ -98,43 +176,6 @@ function runAnimation(n, k) {
     return obj;
   }
 
-  function nextSubset(n, k, subsetObject) {
-    if (subsetObject == null) {
-      var next = [];
-      for (var i = 1; i <= k; i++) {
-        next.push(i);
-      }
-      return {
-        "subset": next,
-        "movedIndex": null,
-      };
-    }
-
-    var oldSubsetArray = subsetObject.subset;
-    var movedIndex = getIndexToMove(n, k, oldSubsetArray);
-
-    if (movedIndex == null) {
-      // We've reached the last subset.
-      return null;
-    }
-
-    var newSubsetArray = [];
-    for (var i = 0; i < oldSubsetArray.length; i++) {
-      if (i < movedIndex) {
-        newSubsetArray.push(i+1);
-      } else if (i == movedIndex) {
-        newSubsetArray.push(oldSubsetArray[i] + 1);
-      } else {
-        newSubsetArray.push(oldSubsetArray[i]);
-      }
-    }
-
-    return {
-      "subset": newSubsetArray,
-      "movedIndex": movedIndex,
-    };
-  }
- 
   var maxRows = binomial(n, k);
   
   var gridWidth = 30;
@@ -145,10 +186,13 @@ function runAnimation(n, k) {
   var paperWidth = (n+1) * gridWidth;
   var paperHeight = (maxRows+1) * gridHeight;
   var paper = Raphael("main", paperWidth, paperHeight);
-  
-  var callbacks = {};
-  
-  callbacks.moveDown = function(state) {
+
+  /**
+   * Given the current state, trigger the next step of the animation.
+   * This method will generate a chain of callbacks that will animate
+   * the algorithm until it completes.
+   */
+  function getCallback(state) {
     if (state.subset == null) {
       // We've reached the final subset, so there are no more callbacks
       // to generate.
@@ -172,7 +216,7 @@ function runAnimation(n, k) {
         subset: newSubset,
         rowIndex: newRowIndex,
       };
-      var callback = callbacks.moveDown(newState);
+      var callback = getCallback(newState);
 
       for (var i = 0; i < newCircles.length; i++) {
         var arrowType;
@@ -213,5 +257,5 @@ function runAnimation(n, k) {
     circles.push(circle);
   }
 
-  callbacks.moveDown({rowIndex: 0, subset: firstSubset, circles: circles})();
+  getCallback({rowIndex: 0, subset: firstSubset, circles: circles})();
 }
