@@ -22,3 +22,7 @@ body {
 .gray {
   color: #aaa;
 }
+
+.error {
+  color: #c00;
+}

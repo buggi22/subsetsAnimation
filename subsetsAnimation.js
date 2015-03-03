@@ -11,10 +11,25 @@ $(document).ready(function() {
  * Parses the input form and triggers an animation.
  */
 function runAnimationFromUI() {
-  var nFromUI = parseInt($("#n").val(), 10);
-  var kFromUI = parseInt($("#k").val(), 10);
+  $("#error").empty();
+  var nStr = $("#n").val();
+  var kStr = $("#k").val();
+  if (!jQuery.isNumeric(nStr) || !jQuery.isNumeric(kStr)) {
+    $("#error").text("n and k must be numeric");
+    return;
+  }
+  var n = parseInt(nStr, 10);
+  var k = parseInt(kStr, 10);
+  if (n < k) {
+    $("#error").text("n must be greater than or equal to k");
+    return;
+  }
+  if (k < 0) {
+    $("#error").text("k must be non-negative");
+    return;
+  }
   $("#main").empty();
-  runAnimation(nFromUI, kFromUI);
+  runAnimation(n, k);
 }
 
 /**
@@ -22,12 +37,12 @@ function runAnimationFromUI() {
  */
 function runAnimation(n, k) {
   if (n < k) {
-    alert("n must be greater than or equal to k");
+    console.log("n must be greater than or equal to k");
     return;
   }
 
   if (k < 0) {
-    alert("k must be non-negative");
+    console.log("k must be non-negative");
     return;
   }
 
